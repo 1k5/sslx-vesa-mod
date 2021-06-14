@@ -1,0 +1,218 @@
+= SUN SPARCstation LX VESA Mod
+Malte Dehling <mdehling@gmail.com>
+
+:imagesdir: https://raw.githubusercontent.com/1k5/sslx-vesa-mod/main/img/
+
+:url-framebuffer-faq: http://www.sunhelp.org/faq/FrameBuffer.html
+:url-SUNWddk: https://stuff.mit.edu/afs/athena/contrib/watchmaker/SUNWddk/
+:url-fcode-2: https://docs.oracle.com/cd/E19695-01/802-1941/802-1941.pdf
+:url-maydell-ipx-cg6: http://www.chiark.greenend.org.uk/~pmaydell/misc/cgsixdata.txt
+:url-bitsavers-gx: http://www.bitsavers.org/components/lsiLogic/sparc/GX/
+
+
+This repository contains a dump of the SPARCstation LX's EPROM and the
+extracted FCode for the builtin CG6 framebuffer in both binary and detokenized
+source form.  The goal is to understand how to add support for additional video
+modes, in particular modes that are suitable for use with modern LCD displays.
+
+
+The SPARCstation LX defines video modes 1024x768x60, 1024x768x70, 1024x768x76,
+1024x768x77, 1024x800x72, 1024x800x74, 1024x800x85, 1152x900x66, 1152x900x76,
+1280x1024x67, 1280x1024x76, and 1600x1280x76, the last three of which are only
+available if you have the optional 1MB VRAM module installed.
+
+Additional modes can be defined and the {url-framebuffer-faq}[SUN Framebuffer
+FAQ] does a good job of explaining how to write the required modelines.  For
+example, one can use the following line in the `nvramrc` variable to define
+the VESA mode 1280x1024x60 (see the FAQ for the exact procedure):
+
+----
+: vsetup " 108000000,63981,60,48,112,248,1280,1,3,38,1024,COLOR,0OFFSET" ;
+----
+
+The Framebuffer FAQ also warns that the first parameter (the pixel clock)
+cannot be chosen freely, instead only specific preprogramed values can be
+used.  For the SPARCstation LX these values are the following: 47.250.000,
+54.000.000, 64.125.000, 74.250.000, 81.000.000, 84.375.000, 94.500.000,
+108.000.000, 118.125.000, 135.000.000, 189.000.000, and 216.000.000 .
+
+While the SPARCstation LX with its optional VRAM module is capable of high
+resolutions, the predefined mode 1600x1280x76 is basically useless with modern
+LCD displays.  It would be nice to be able to use the more common 1600x1200x60
+VESA mode.  This mode uses a 162MHz pixel clock which is not among those the
+SPARCstation LX defines.
+
+
+The OpenBoot PROM
+-----------------
+The file `+sslx-obp-2.10.bin+` is a dump of my SPARCstation LX's EPROM.  The
+SUN part number is 525-1204-02 and the OBP version is 2.10.  If you have a
+different version, please let me know!
+
+The following is a map of some parts of the PROM that I was able to identify so
+far.
+
+.SPARCstation LX PROM layout
+[%autowidth]
+|===
+| Start   | Length | End     | Description
+
+| 0x0c390 | 0x24d8 | 0x0e868 | console font
+| 0x10a8c | 0x00d8 | 0x10b64 | sbus@2 fcode: SUNW,DBRIe mmcodec
+| 0x10b64 | 0x26bc | 0x13220 | sbus@3 fcode: cgsix
+| 0x13220 | 0x2a12 | 0x15c32 | cgsix logo
+| 0x15c34 | 0x3874 | 0x194a8 | sbus@4 fcode: espdma esp sd st SUNW,bpp ledma le
+|===
+
+If your OBP version is different and you want to locate the relevant FCode
+parts, try looking for the magic version bytes `fd 03`, or possibly `fd 01` or
+`f1 03`.  This is what the hexdump looks like in my case:
+
+----
+00010b60:  c2 08 04 00 fd 03 3d ea  00 00 26 bc cc 12 05 63  ......=...&....c
+                       ^^ ^^
+00010b70:  67 73 69 78 01 14 12 04  6e 61 6d 65 01 10 12 0d  gsix....name....
+00010b80:  53 55 4e 57 2c 35 30 31  2d 31 36 37 32 01 19 12  SUNW,501-1672...
+----
+
+
+The CG6 FCode
+-------------
+The file `+sslx-cg6.fcode+` contains the CG6 FCode extracted from the EPROM
+dump.  I detokenized the FCode using the SUNWfcode package's detokenizer,
+formatted it, and added comments on parts I found relevant.  SUN's own
+detokenizer has a number of issues so the detokenized source required a lot of
+manual processing.  The resulting file `+sslx-cg6.fth+` reproduces the exact
+same binary FCode when tokenized with `+tokenize -n -8 sslx-cg6.fth+`.
+
+Understanding Oscillator Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The SPARCstation LX uses an ICS1562M User Programmable Timing Generator to
+generate the pixel clock signal with a 27MHz reference frequency.  Programming
+is done by writing 13 4-bit values to the ICS1562's internal registers.  The
+forth words pushing the relevant register values onto the stack are `+ics47+`,
+`+ics54+`, `+ics64+`, `+ics74+`, `+ics81+`, `+ics84+`, `+ics94+`, `+ics108+`,
+`+ics118+`, `+ics135+`, `+ics189+`, and `+ics216+`:
+
+----
+: ics47   0 1 0 a 4 0 0 1 8 2 0 0 5 ;
+: ics54   0 1 0 a 4 0 0 1 8 2 2 0 4 ;
+: ics64   0 1 0 a 4 0 0 1 8 2 1 0 3 ;
+: ics74   0 1 0 a 5 0 0 1 8 4 3 0 5 ;
+: ics81   0 1 0 a 5 0 0 1 8 5 0 0 6 ;
+: ics84   0 1 0 a 5 0 0 1 8 3 1 0 3 ;
+: ics94   0 1 0 a 5 0 0 1 8 2 0 0 2 ;
+: ics108  0 1 0 a 5 0 0 1 8 4 2 0 3 ;
+: ics118  0 1 0 a 5 0 0 1 8 3 2 0 2 ;
+: ics135  0 1 0 a 6 0 0 1 8 5 4 0 3 ;
+: ics189  0 0 0 a 5 0 0 1 8 2 0 0 2 ;
+: ics216  0 0 0 a 5 0 0 1 8 4 2 0 3 ;
+----
+
+The forth word `+ics-write+` is called to write these values to the ICS
+registers in reverse order.  The meaning of the registers is explained in the
+ICS1562A datasheet.  (I was unable to find a datasheet for the ICS1562M, but
+the one for the ICS1562A seems right.)  The following is a simplified version
+of what's going on.  You can do a lot more than is described here, but most of
+it is not necessary for us.
+
+.ICS1562 registers
+[%autowidth]
+|===
+| Reg | Bit(s) | Reference  | Description
+
+|   0 |    0-3 | R[0]..R[3] | reference divider
+|   1 |    0-2 | R[4]..R[6] |
+|   2 |    0-3 | A[0]..A[3] | A-counter control
+|   3 |    0-3 | M[0]..M[3] | M-counter control
+|   8 |    0-2 | V[0]..V[2] | VCO gain
+|   b |    0-1 | S[0]..S[1] | PLL post scaler
+|===
+
+The pre-scaling frequency is calculated as `+F1 = (27MHz * N) / (R+1)+`, where
+`+N = (M+1)*6 + A+` for `A != 0` and `+N = (M+1)*7+` for `A == 0`; the pixel
+clock frequency after scaling is `F2 = F1 / (2**S)`.
+
+For example, for `+ics108+` we have `R = 3`, `A = 2`, `M = 4`, `V = 5`, and
+`S = 1`.  This means `N = 5*6 + 2 = 32`, `F1 = (27MHz * 32) / 4 = 216MHz`, and
+`F2 = 108MHz`.  Note that `+ics216+` uses the same values, except without
+post-scaling: `F2 = F1 = 216MHz`.
+
+Now to define our own timings, we simply choose appropriate values for `R`,
+`A`, `M`, and `S`, making sure that `+A <= M+` and the pre-scaling frequency
+`F1` is at most about 260Mhz.  Finally use `V = 4` for `+F1 <= 120Mhz+`,
+`V = 5` for `+F1 <= 200MHz+`, and `V=6` for `+F1 <= 260MHz+`.  These values are
+from the datasheet and it seems that SUN actually used slightly higher ones.
+
+As an example, consider a 162MHz pixel clock.  We will use this one below to
+define the VESA 1600x1200x60 video mode.  To keep `F1` low enough, we choose
+`S = 0` and thus `F1 = F2 = 162MHz`.  The equation above for `F1` gives
+`N = (R+1) * 162MHz/27MHz = (R+1) * 6`.  This first multiple of 6 from the
+table below is 48, so we choose `M = 6`, `A = 6`, and `R = 7`:
+
+----
+: ics162  0 0 0 a 5 0 0 1 8 6 6 0 7 ;
+----
+
+.Values of N for given M and A.
+[%autowidth]
+|===
+| M \ A |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7
+| 0     |  7 |    |    |    |    |    |    |
+| 1     | 14 | 13 |    |    |    |    |    |
+| 2     | 21 | 19 | 20 |    |    |    |    | 
+| 3     | 28 | 25 | 26 | 27 |    |    |    |
+| 4     | 35 | 31 | 32 | 33 | 34 |    |    |
+| 5     | 42 | 37 | 38 | 39 | 40 | 41 |    |
+| 6     | 49 | 43 | 44 | 45 | 46 | 47 | 48 |
+| 7     | 56 | 49 | 50 | 51 | 52 | 53 | 54 | 55
+|===
+
+Adding Video Modes
+~~~~~~~~~~~~~~~~~~
+Immediately following the CG6 FCode is the logo that is shown at boot and the
+FCode locates it by reading the data immediatly following itself.  Since we are
+only making minor modifications to the FCode, it is convenient to keep it the
+same length so we don't have to deal with moving the logo and whatever else
+might be necessary.
+
+In the modified `sslx-cg6-vesa.fth` file I have replaced the high frequency
+modes 1280x1024x76 and 1600x1280x76 by the VESA modes 1280x1024x60 and
+1600x1200x60.  To do this, I replaced the ics216 word by ics162 defining a
+162MHz oscillator.  These are the relevant source lines:
+
+----
+: ics162        0 1 0 a 6 0 0 1 8 6 6 0 3 ;
+
+: r1280x1024x60 " 108000000,63981,60,48,112,248,1280,1,3,38,1024,COLOR,0OFFSET" ;
+: r1600x1200x60 " 162000000,75000,60,64,192,304,1600,1,3,46,1200,COLOR,0OFFSET" ;
+----
+
+Have a look at the source and look for the keyword VESA to see what else needs
+to be changed!
+
+The file `sslx-cg6-vesa.fcode` contains the tokenized FCode for the modified
+source, and `sslx-obp-2.10-vesa.bin` is a copy of the SPARCstation LX PROM with
+the modified CG6 FCode.  If you have an (E)EPROM programmer, you can simply write
+this to an AM27C020 or equivalent and enjoy the new VESA video modes.
+
+
+References
+----------
+{url-framebuffer-faq}::
+	The SUN Framebuffer FAQ.
+
+{url-SUNWddk}::
+	Here you can find the SUNWfcode package used for (de)tokenizing.
+
+{url-fcode-2}::
+	_Writing FCode 2.x Programs_.  Very helpful FCode/Forth reference.
+
+{url-maydell-ipx-cg6}::
+	Peter Maydell's commented source of the SPARCstation IPX's onboard CG6.
+	His comments were very helpful in understanding the CG6 FCode.
+
+{url-bitsavers-gx}::
+	Hardware documentation for the older GX.  Unfortunately a few pages are
+	missing.  The ICS timing generator was not used in these earlier cards.
+
