@@ -87,12 +87,13 @@ same binary FCode when tokenized with `+tokenize -n -8 sslx-cg6.fth+`.
 
 Understanding Oscillator Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The SPARCstation LX uses an ICS1562M User Programmable Timing Generator to
-generate the pixel clock signal with a 27MHz reference frequency.  Programming
-is done by writing 13 4-bit values to the ICS1562's internal registers.  The
-forth words pushing the relevant register values onto the stack are `+ics47+`,
-`+ics54+`, `+ics64+`, `+ics74+`, `+ics81+`, `+ics84+`, `+ics94+`, `+ics108+`,
-`+ics118+`, `+ics135+`, `+ics189+`, and `+ics216+`:
+The SPARCstation LX uses an ICS1562M _User Programmable Differential Output
+Graphics Clock Generator_ to generate the pixel clock signal with a 27MHz
+reference frequency.  Programming is done by writing 13 4-bit values to the
+ICS1562's internal registers.  The forth words pushing the relevant register
+values onto the stack are `+ics47+`, `+ics54+`, `+ics64+`, `+ics74+`,
+`+ics81+`, `+ics84+`, `+ics94+`, `+ics108+`, `+ics118+`, `+ics135+`,
+`+ics189+`, and `+ics216+`:
 
 ----
 : ics47   0 1 0 a 4 0 0 1 8 2 0 0 5 ;
