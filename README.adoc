@@ -31,7 +31,7 @@ the VESA mode 1280x1024x60 (see the FAQ for the exact procedure):
 ----
 
 The Framebuffer FAQ also warns that the first parameter (the pixel clock)
-cannot be chosen freely, instead only specific preprogramed values can be
+cannot be chosen freely, instead only specific preprogrammed values can be
 used.  For the SPARCstation LX these values are the following: 47.250.000,
 54.000.000, 64.125.000, 74.250.000, 81.000.000, 84.375.000, 94.500.000,
 108.000.000, 118.125.000, 135.000.000, 189.000.000, and 216.000.000 .
