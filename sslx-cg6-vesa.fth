@@ -89,7 +89,7 @@ defer fbprom
 		\ Old OpenBoot does not support attributes.
 		2drop 2drop
 	else
-		my-reset 0 = if
+		my-reset 0= if
 			attribute
 		else
 			\ Currently resetting, do nothing.
@@ -225,32 +225,30 @@ defer fbprom
 : init-blit-reg ( -- )
 	fbc-busy-wait
 
-	ffffffff 10 fbc!	\ STATUS
+	ffff.ffff 10 fbc!	\ STATUS
 
 	0 4 tec!
 
-	\ VESA: this is just to save 4 bytes...
 	0 8 fbc!		\ CLIPCHECK
-	\ h# 0 8 fbc!		\ CLIPCHECK
 
-	h# 0 c0 fbc!		\ RASTEROFFX
-	h# 0 c4 fbc!		\ RASTEROFFY
+	0 c0 fbc!		\ RASTEROFFX
+	0 c4 fbc!		\ RASTEROFFY
 
-	h# 0 d0 fbc!		\ AUTOINCX
-	h# 0 d4 fbc!		\ AUTOINCY
+	0 d0 fbc!		\ AUTOINCX
+	0 d4 fbc!		\ AUTOINCY
 
-	h# 0 e0 fbc!		\ CLIPMINX
-	h# 0 e4 fbc!		\ CLIPMINY
+	0 e0 fbc!		\ CLIPMINX
+	0 e4 fbc!		\ CLIPMINY
 
 	ff 100 fbc!		\ FCOLOR
-	h# 0 104 fbc!		\ BCOLOR
+	0 104 fbc!		\ BCOLOR
 
 	a980.6c60 108 fbc!	\ RASTEROP
 
 	ff 10c fbc!		\ PLANEMASK
 	ffff.ffff 110 fbc!	\ PIXELMASK
 
-	h# 0 11c fbc!		\ PATTALIGN
+	0 11c fbc!		\ PATTALIGN
 
 	\ PATTERN0..PATTERN7
 	ffffffff 120 fbc! ffffffff 124 fbc! ffffffff 128 fbc! ffffffff 12c fbc!
@@ -273,11 +271,14 @@ defer fbprom
 	\ presumably added later to deal with higher resolutions.
 	\
 	display-width case
-	d# 1024 of	ffffe3ff 0 fhc@ and          0 fhc!	endof
-	d# 1152 of	ffffe3ff 0 fhc@ and 800 or   0 fhc!	endof
-	d# 1280 of	ffffe3ff 0 fhc@ and 1000 or  0 fhc!	endof
-	d# 1600 of	ffffe3ff 0 fhc@ and 1800 or  0 fhc!	endof
-	d# 1920 of	ffffe3ff 0 fhc@ and 400 or   0 fhc!	endof
+	d# 1024 of  ffff.e3ff 0 fhc@ and         0 fhc!  endof
+	d# 1152 of  ffff.e3ff 0 fhc@ and 0800 or 0 fhc!  endof
+	d# 1280 of  ffff.e3ff 0 fhc@ and 1000 or 0 fhc!  endof
+	d# 1600 of  ffff.e3ff 0 fhc@ and 1800 or 0 fhc!  endof
+	d# 1920 of  ffff.e3ff 0 fhc@ and 0400 or 0 fhc!  endof
+	\ This one is from the TurboGX+ which uses the same RAMDAC.  It doesn't
+	\ make sens with only 2MB video memory though.
+	\ d# 2048 of  ffff.e3ff 0 fhc@ and 1400 or 0 fhc!  endof
 	endcase
 ;
 
@@ -603,19 +604,19 @@ variable tmp-blit
 	dac-map
 
 	0600.0000 0 dac! 4300.0000 8 dac!	\ Command:    0100.0011
-	0500.0000 0 dac! h# 0      8 dac!	\ Blink Mask: 0000.0000
+	0500.0000 0 dac! 0000.0000 8 dac!	\ Blink Mask: 0000.0000
 	0400.0000 0 dac! ff00.0000 8 dac!	\ Read Mask:  1111.1111
-	0700.0000 0 dac! h# 0      8 dac!	\ Test:       0000.0000
+	0700.0000 0 dac! 0000.0000 8 dac!	\ Test:       0000.0000
 	0900.0000 0 dac! 0600.0000 8 dac!	\ ?:          0000.0110
 
 	\ Initialize color palette.
-	ff00.0000  h# 0       4 color!		\ entry 00 is white
-	h# 0       ff00.0000  4 color!		\ entry ff is black
+	ff00.0000 0000.0000 4 color!		\ entry 00 is white
+	0000.0000 ff00.0000 4 color!		\ entry ff is black
 
 	\ Initialize overlay colors.
-	ff00.0000  0100.0000  c color!		\ overlay 1 is white
-	h# 0       0200.0000  c color!		\ overlay 2 is black
-	h# 0       0300.0000  c color!		\ overlay 3 is black
+	ff00.0000 0100.0000 c color!		\ overlay 1 is white
+	0000.0000 0200.0000 c color!		\ overlay 2 is black
+	0000.0000 0300.0000 c color!		\ overlay 3 is black
 
 	\ Typical blue-ish purple Sun logo color.
 	6400.0000 4100.0000 b400.0000 0100.0000 3color!
@@ -640,17 +641,16 @@ external
 : r1024x800x85 " 94500000,71590,85,16,128,152,1024,2,4,31,800,COLOR,0OFFSET" ;
 : r1152x900x66 " 94500000,61845,66,40,128,208,1152,2,4,31,900,COLOR" ;
 : r1152x900x76 " 108000000,71808,76,32,128,192,1152,2,4,31,900,COLOR,0OFFSET" ;
-\ VESA_1280x1024x60
 : r1280x1024x60 " 108000000,63981,60,48,112,248,1280,1,3,38,1024,COLOR,0OFFSET" ;
 : r1280x1024x67 " 118125000,71678,67,24,128,216,1280,2,8,41,1024,COLOR,0OFFSET" ;
-\ : r1280x1024x76 " 135000000,81128,76,32,64,288,1280,2,8,32,1024,COLOR,0OFFSET" ;
-\ VESA_1600x1200x60
+: r1280x1024x76 " 135000000,81128,76,32,64,288,1280,2,8,32,1024,COLOR,0OFFSET" ;
 : r1600x1200x60 " 162000000,75000,60,64,192,304,1600,1,3,46,1200,COLOR,0OFFSET" ;
 \ : r1600x1280x76 " 216000000,101890,76,24,216,280,1600,2,8,50,1280,COLOR,0OFFSET" ;
+: r1920x1080x60 " 148500000,67500,60,88,44,148,1920,4,5,36,1080,COLOR,0OFFSET" ;
 
-: svga60	r1024x768x60 ;
-: svga70	r1024x768x70 ;
-: svga77	r1024x768x77 ;
+\ : svga60	r1024x768x60 ;
+\ : svga70	r1024x768x70 ;
+\ : svga77	r1024x768x77 ;
 
 headers
 
@@ -682,10 +682,9 @@ defer sense-code
 	5 of	r1024x768x60	endof
 	4 of	r1152x900x76	endof
 	3 of	r1152x900x66	endof
-	2 of	r1280x1024x60	endof
-	\ 2 of	r1280x1024x76	endof
-	\ VESA_1600x1200x60
-	1 of	r1600x1200x60	endof
+	\ 2 of	r1280x1024x60	endof
+	2 of	r1280x1024x76	endof
+	1 of	r1152x900x66	endof
 	\ 1 of	r1600x1280x76	endof
 	0 of	r1024x768x77	endof
 	drop	r1152x900x66	0	\ invalid sense-id
@@ -755,8 +754,8 @@ defer sense-code
 \                 S     V         M A   R
 \ Reg:          c b a 9 8 7 6 5 4 3 2 1 0
 \               v v v v v v v v v v v v v
-: ics47		0 1 0 a 4 0 0 1 8 2 0 0 5 ;
-: ics54		0 1 0 a 4 0 0 1 8 2 2 0 4 ;
+\ : ics47		0 1 0 a 4 0 0 1 8 2 0 0 5 ;
+\ : ics54		0 1 0 a 4 0 0 1 8 2 2 0 4 ;
 : ics64		0 1 0 a 4 0 0 1 8 2 1 0 3 ;
 : ics74		0 1 0 a 5 0 0 1 8 4 3 0 5 ;
 : ics81		0 1 0 a 5 0 0 1 8 5 0 0 6 ;
@@ -765,9 +764,10 @@ defer sense-code
 : ics108	0 1 0 a 5 0 0 1 8 4 2 0 3 ;
 : ics118	0 1 0 a 5 0 0 1 8 3 2 0 2 ;
 : ics135	0 1 0 a 6 0 0 1 8 5 4 0 3 ;
-\ VESA_1600x1200x60
-: ics162	0 1 0 a 6 0 0 1 8 6 6 0 3 ;
-\ : ics162	0 0 0 a 5 0 0 1 8 6 6 0 7 ;
+\ : ics162	0 1 0 a 6 0 0 1 8 6 6 0 3 ;
+: ics148	0 0 0 a 5 0 0 1 8 4 3 0 5 ;
+\ : ics154	0 0 0 a 5 0 0 1 9 8 4 1 a ;
+: ics162	0 0 0 a 5 0 0 1 8 6 6 0 7 ;
 : ics189	0 0 0 a 5 0 0 1 8 2 0 0 2 ;
 \ : ics216	0 0 0 a 5 0 0 1 8 4 2 0 3 ;
 
@@ -779,15 +779,21 @@ defer sense-code
 \ order in setup-oscillator !
 \
 : oscillators ( -- osc[0..n-1] n )
-	\ 50775d8 4d3f640 46cf710 3d27848
-	\ cdfe600 b43e940 80befc0 70a71c8
-	\ 66ff300 5a1f4a0 337f980 2d0fa50
-	d#  84.375.000	d#  81.000.000	d#  74.250.000	d#  64.125.000
-	\ VESA_1600x1200x60
-	d# 162.000.000	d# 189.000.000	d# 135.000.000	d# 118.125.000
-	\ d# 216.000.000	d# 189.000.000	d# 135.000.000	d# 118.125.000
-	d# 108.000.000	d#  94.500.000	d#  54.000.000	d#  47.250.000
-	c	\ number of oscillator values
+	\ d# 216.000.000
+	d# 189.000.000
+	d# 162.000.000
+	d# 148.500.000
+	d# 135.000.000
+	d# 118.125.000
+	d# 108.000.000
+	d#  94.500.000
+	d#  84.375.000
+	d#  81.000.000
+	d#  74.250.000
+	d#  64.125.000
+	\ d#  54.000.000
+	\ d#  47.250.000
+	b			\ number of oscillator values
 ;
 
 
@@ -795,20 +801,20 @@ defer sense-code
 	?alt-map
 
 	( idx ) case
-	0 of	ics47	endof
-	1 of	ics54	endof
-	2 of	ics94	endof
-	3 of	ics108	endof
-	4 of	ics118	endof
-	5 of	ics135	endof
-	6 of	ics189	endof
-	\ VESA_1600x1200x60
-	7 of	ics162	endof
-	\ 7 of	ics216	endof
-	8 of	ics64	endof
-	9 of	ics74	endof
-	a of	ics81	endof
-	b of	ics84	endof
+	\ 0 of	ics47	endof
+	\ 1 of	ics54	endof
+	0 of	ics64	endof
+	1 of	ics74	endof
+	2 of	ics81	endof
+	3 of	ics84	endof
+	4 of	ics94	endof
+	5 of	ics108	endof
+	6 of	ics118	endof
+	7 of	ics135	endof
+	8 of	ics148	endof
+	9 of	ics162	endof
+	a of	ics189	endof
+	\ c of	ics216	endof
 	drop	ics94	0
 	endcase
 
@@ -818,22 +824,6 @@ defer sense-code
 	loop
 
 	0 f ics-write
-
-	\
-	\ According to the ICS1562A datasheet I have, it needs 32 register
-	\ writes for programming to become effective.  It is suggested to do
-	\ dummy writes to the c or d register.  The TurboGX+ PROM contains the
-	\ following code:
-	\
-	\ 20 0 do
-	\	0 d ics-write
-	\ loop
-	\
-	\ In fact, 19 (h# 13) dummy writes should be enough.
-	\
-	\ The LX contains an ICS1562M 9348-001 for which I have no datasheet
-	\ so I'm not sure whether the same dummy writes should be done here.
-	\
 
 	94 thc@  40 or  dup 94 thc!  to strap-value
 
@@ -1093,19 +1083,21 @@ headers
 
 : fbc-res ( -- )
 	display-width case
-	d# 1024 of	ffffe3ff 0 fhc@ and         0 fhc!	endof
-	d# 1152 of	ffffe3ff 0 fhc@ and 800 or  0 fhc!	endof
-	d# 1280 of	ffffe3ff 0 fhc@ and 1000 or 0 fhc!	endof
-	d# 1600 of	ffffe3ff 0 fhc@ and 1800 or 0 fhc!	endof
-	d# 1920 of	ffffe3ff 0 fhc@ and 400 or  0 fhc!	endof
-	0	to acceleration		\ unknown resolution, no acceleration
+	d# 1024 of  ffff.e3ff 0 fhc@ and         0 fhc!  endof
+	d# 1152 of  ffff.e3ff 0 fhc@ and 0800 or 0 fhc!  endof
+	d# 1280 of  ffff.e3ff 0 fhc@ and 1000 or 0 fhc!  endof
+	d# 1600 of  ffff.e3ff 0 fhc@ and 1800 or 0 fhc!  endof
+	d# 1920 of  ffff.e3ff 0 fhc@ and 0400 or 0 fhc!  endof
+	\ From the TurboGX+, same RAMDAC.  Not enough video memory on the LX.
+	\ d# 2048 of  ffff.e3ff 0 fhc@ and 1400 or 0 fhc!  endof
+	            0 to acceleration	\ unknown resolution, no acceleration
 	endcase
 
 	\ Handle the 0OFFSET flag.
 	cal-tmp @ 4 and 0<> if
-		94 thc@  80 or          94 thc!
+		94 thc@  0000.0080 or   94 thc!
 	else
-		94 thc@  80 invert and  94 thc!
+		94 thc@  ffff.ff7f and  94 thc!
 	then
 ;
 
@@ -1160,15 +1152,15 @@ headers
 ' confused? to (confused?
 
 
-: enable-disables	94 thc@ 800 or         94 thc! ;
-: disable-disables	94 thc@ 800 invert and 94 thc! ;
+: enable-disables	94 thc@  0000.0800 or   94 thc! ;
+: disable-disables	94 thc@  ffff.f7ff and  94 thc! ;
 
 
 : lego-init-hc
 	?fhc-thc-map
 
 	8000 0 fhc!
-	1bb 0 fhc!
+	01bb 0 fhc!
 
 	chip-rev case
 	5 of
@@ -1196,7 +1188,7 @@ headers
 		disable-disables
 	endcase
 
-	ffe0ffe0 8fc thc!
+	ffe0.ffe0 8fc thc!
 
 	lego-sync-reset
 	lego-sync-on
@@ -1289,33 +1281,33 @@ headers
 	8 fbc@
 	35 100 fbc!
 	ca 104 fbc!
-	12345678 110 fbc!
-	96969696 84 fbc!
-	69696969 80 fbc!
-	3c3c3c3c 90 fbc!
-	a980cccc 108 fbc!
-	ff 10c fbc!
+	1234.5678 110 fbc!
+	9696.9696 84 fbc!
+	6969.6969 80 fbc!
+	3c3c.3c3c 90 fbc!
+	a980.cccc 108 fbc!
+	0000.00ff 10c fbc!
 	0 e0 fbc!
-	h# 0 e4 fbc!
+	0 e4 fbc!
 	display-width 1 - f0 fbc!
 	display-height 1 - f4 fbc!
 	14aac0 4 fbc!
-	h# 0 8 fbc!
-	h# 0 4 tec!
+	0 8 fbc!
+	0 4 tec!
 
 	"  FBC register test" diagnostic-type
 
 	100 fbc@
 	35		" FBC_FCOLOR"		?lego-error 104 fbc@
 	ca		" FBC_BCOLOR"		?lego-error 110 fbc@
-	12345678	" FBC_PIXELMASK"	?lego-error 84 fbc@
-	96969696	" FBC_Y0"		?lego-error 80 fbc@
-	69696969	" FBC_X0"		?lego-error 90 fbc@
-	3c3c3c3c	" FBC_RASTEROP"		?lego-error ff 110 fbc!
+	1234.5678	" FBC_PIXELMASK"	?lego-error 84 fbc@
+	9696.9696	" FBC_Y0"		?lego-error 80 fbc@
+	6969.6969	" FBC_X0"		?lego-error 90 fbc@
+	3c3c.3c3c	" FBC_RASTEROP"		?lego-error ff 110 fbc!
 	0 84 fbc!
 	0 80 fbc!
 	1f 90 fbc!
-	55555555 1c fbc!
+	5555.5555 1c fbc!
 	8 fbc!
 
 	selftest-map if
@@ -1400,7 +1392,7 @@ external
 		(set-fbconfiguration
 	then
 
-	my-reset 0 = if
+	my-reset 0= if
 
 		display-width dup dup
 		encode-int " width" property
@@ -1532,7 +1524,7 @@ headers
 	l@ 1234567 <> if
 		1
 	else
-		fb-addr 100000 + l@ 87654321 <> if
+		fb-addr 100000 + l@ 8765.4321 <> if
 			1
 		else
 			2
@@ -1605,19 +1597,15 @@ headers
 	14 rshift f and dup encode-int " chiprev" my-attribute to chip-rev
 
 	\ These are 32 dummy writes to ICS register 0 so the new programming
-	\ becomes effective.  See my comments in setup-oscillator !
+	\ becomes effective.
 	20 0 do
 		\ together this is:  0 0 icswrite
-		0 0 alt!
-		0800.0000 0 alt!
+		\ 0000.0000 0 alt!
+		\ 0800.0000 0 alt!
+		0 0 ics-write
 	loop
 
-	\ VESA_1600x1200x60
-	" 74250000,64125000,162000000,135000000," encode-bytes
-	\ " 74250000,64125000,216000000,135000000," encode-bytes
-	" 118125000,108000000,94500000,54000000," encode-bytes encode+
-	" 47250000,81000000,84375000" encode-string encode+ encode-string
-	" oscillators" my-attribute
+	" 64125000,74250000,81000000,84375000,94500000,108000000,118250000,135000000,148500000,162000000,189000000" encode-string " oscillators" my-attribute
 
 	data-space encode-int " global-data" property
 	/frame encode-int " fbmapped" property

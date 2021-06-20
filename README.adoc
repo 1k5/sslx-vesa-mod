@@ -155,6 +155,13 @@ table below is 48, so we choose `M = 6`, `A = 6`, and `R = 7`:
 : ics162  0 0 0 a 5 0 0 1 8 6 6 0 7 ;
 ----
 
+I have also tried the following version _with_ post-scaling and it works just
+as well for me:
+
+----
+: ics162  0 1 0 a 6 0 0 1 8 6 6 0 3 ;
+----
+
 .Values of N for given M and A.
 [%autowidth]
 |===
@@ -169,6 +176,7 @@ table below is 48, so we choose `M = 6`, `A = 6`, and `R = 7`:
 | 7     | 56 | 49 | 50 | 51 | 52 | 53 | 54 | 55
 |===
 
+
 Adding Video Modes
 ~~~~~~~~~~~~~~~~~~
 Immediately following the CG6 FCode is the logo that is shown at boot and the
@@ -178,24 +186,25 @@ same length so we don't have to deal with moving the logo and whatever else
 might be necessary.
 
 In the modified `sslx-cg6-vesa.fth` file I have replaced the high frequency
-modes 1280x1024x76 and 1600x1280x76 by the VESA modes 1280x1024x60 and
-1600x1200x60.  To do this, I replaced the ics216 word by ics162 defining a
-162MHz oscillator.  These are the relevant source lines:
+mode 1600x1280x76 by the VESA modes 1280x1024x60 and 1600x1200x60.  To do this,
+I replaced the ics216 word by ics162 defining a 162MHz oscillator.  These are
+the relevant source lines:
 
 ----
-: ics162        0 1 0 a 6 0 0 1 8 6 6 0 3 ;
+: ics162  0 0 0 a 5 0 0 1 8 6 6 0 7 ;
 
 : r1280x1024x60 " 108000000,63981,60,48,112,248,1280,1,3,38,1024,COLOR,0OFFSET" ;
 : r1600x1200x60 " 162000000,75000,60,64,192,304,1600,1,3,46,1200,COLOR,0OFFSET" ;
 ----
 
-Have a look at the source and look for the keyword VESA to see what else needs
-to be changed!
+I have made a few other changes to save enough space, such as removing the
+alias words `svga60`, `svga70`, and `svga77`, and removing unused oscillator
+frequencies.
 
 The file `sslx-cg6-vesa.fcode` contains the tokenized FCode for the modified
 source, and `sslx-obp-2.10-vesa.bin` is a copy of the SPARCstation LX PROM with
-the modified CG6 FCode.  If you have an (E)EPROM programmer, you can simply write
-this to an AM27C020 or equivalent and enjoy the new VESA video modes.
+the modified CG6 FCode.  If you have an (E)EPROM programmer, you can simply
+write this to an AM27C020 or equivalent and enjoy the new VESA video modes.
 
 
 References
