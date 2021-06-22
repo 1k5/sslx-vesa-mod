@@ -207,6 +207,13 @@ the modified CG6 FCode.  If you have an (E)EPROM programmer, you can simply
 write this to an AM27C020 or equivalent and enjoy the new VESA video modes.
 
 
+Logo and Font
+-------------
+Coming soon...
+
+link:{imagesdir}lena-teaser.jpg[image:lena-teaser.jpg["SPARCstation Lena",width=50%]]
+
+
 References
 ----------
 {url-framebuffer-faq}::
