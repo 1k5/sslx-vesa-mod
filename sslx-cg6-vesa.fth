@@ -1,7 +1,7 @@
 \
 \ SPARCstation LX builtin cg6 Framebuffer PROM
 \
-\ Taken from the SPARCstation LX OpenBoot
+\ Taken from the SPARCstation LX OpenBoot v2.10
 \
 FCode-version1
 offset16
@@ -646,7 +646,10 @@ external
 : r1280x1024x76 " 135000000,81128,76,32,64,288,1280,2,8,32,1024,COLOR,0OFFSET" ;
 : r1600x1200x60 " 162000000,75000,60,64,192,304,1600,1,3,46,1200,COLOR,0OFFSET" ;
 \ : r1600x1280x76 " 216000000,101890,76,24,216,280,1600,2,8,50,1280,COLOR,0OFFSET" ;
+\ Neither of these work:
 : r1920x1080x60 " 148500000,67500,60,88,44,148,1920,4,5,36,1080,COLOR,0OFFSET" ;
+\ : r1920x1080x60 " 148500000,56250,50,528,44,148,1920,4,5,36,1080,COLOR,0OFFSET" ;
+\ : r1920x1080x54 " 135000000,61869,54,20,222,20,1920,18,9,18,1080,COLOR,0OFFSET" ;
 
 \ : svga60	r1024x768x60 ;
 \ : svga70	r1024x768x70 ;
@@ -661,7 +664,7 @@ defer sense-code
 \ Default display mode by sense-id *without* extra VRAM.
 : legoSR-sense ( -- stradr strlen )
 	sense-id-value case
-	7 of	r1152x900x66	endof	\ no or unsupported monitor
+	7 of	r1152x900x66	endof
 	6 of	r1152x900x76	endof
 	5 of	r1024x768x60	endof
 	4 of	r1152x900x76	endof
@@ -669,7 +672,7 @@ defer sense-code
 	2 of	r1152x900x66	endof
 	1 of	r1152x900x66	endof
 	0 of	r1024x768x77	endof
-	drop	r1152x900x66	0	\ invalid sense-id
+	drop	r1152x900x66	0
 	endcase
 ;
 
@@ -677,7 +680,7 @@ defer sense-code
 \ Default display mode by sense-id *with* extra VRAM.
 : duploSR-sense ( -- stradr strlen )
 	sense-id-value case
-	7 of	r1152x900x66	endof	\ no or unsupported monitor
+	7 of	r1152x900x66	endof
 	6 of	r1152x900x76	endof
 	5 of	r1024x768x60	endof
 	4 of	r1152x900x76	endof
@@ -687,7 +690,7 @@ defer sense-code
 	1 of	r1152x900x66	endof
 	\ 1 of	r1600x1280x76	endof
 	0 of	r1024x768x77	endof
-	drop	r1152x900x66	0	\ invalid sense-id
+	drop	r1152x900x66	0
 	endcase
 ;
 
@@ -1417,7 +1420,7 @@ external
 
 		dblbuf? encode-int " dblbuf" property
 	then
-; \ set-resolution
+;
 
 
 : set-resolution-ext
@@ -1599,10 +1602,10 @@ headers
 	\ These are 32 dummy writes to ICS register 0 so the new programming
 	\ becomes effective.
 	20 0 do
-		\ together this is:  0 0 icswrite
+		\ this is the same but saves space
+		0 0 ics-write
 		\ 0000.0000 0 alt!
 		\ 0800.0000 0 alt!
-		0 0 ics-write
 	loop
 
 	" 64125000,74250000,81000000,84375000,94500000,108000000,118250000,135000000,148500000,162000000,189000000" encode-string " oscillators" my-attribute
