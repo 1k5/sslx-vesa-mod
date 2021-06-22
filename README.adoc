@@ -214,6 +214,15 @@ Coming soon...
 link:{imagesdir}lena-teaser.jpg[image:lena-teaser.jpg["SPARCstation Lena",width=50%]]
 
 
+Gallery
+-------
+This is what the development setup looked like: on the right is a SPARCstation 20
+width dual RasterFlex HR driving a dual monitor setup; on the left is the
+SPARCstation LX, partially hidden behind the test monitor, an EIZO FlexScan L985EX.
+
+link:{imagesdir}dev-setup.jpg[image:dev-setup.jpg["Development Setup",width=66%]]
+
+
 References
 ----------
 {url-framebuffer-faq}::
