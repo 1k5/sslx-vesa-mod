@@ -222,6 +222,11 @@ SPARCstation LX, partially hidden behind the test monitor, an EIZO FlexScan L985
 
 link:{imagesdir}dev-setup.jpg[image:dev-setup.jpg["Development Setup",width=66%]]
 
+And here is a photo of the SPARCstation LX up and running.  The logo on the screen
+is one of the cg14 logos.
+
+link:{imagesdir}working.jpg[image:working.jpg["Working Setup",width=66%]]
+
 
 References
 ----------
