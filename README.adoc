@@ -8,6 +8,7 @@ Malte Dehling <mdehling@gmail.com>
 :url-fcode-2: https://docs.oracle.com/cd/E19695-01/802-1941/802-1941.pdf
 :url-maydell-ipx-cg6: http://www.chiark.greenend.org.uk/~pmaydell/misc/cgsixdata.txt
 :url-bitsavers-gx: http://www.bitsavers.org/components/lsiLogic/sparc/GX/
+:url-comic-mono: https://github.com/dtinth/comic-mono-font/
 
 
 This repository contains a dump of the SPARCstation LX's EPROM and the
@@ -209,13 +210,13 @@ write this to an AM27C020 or equivalent and enjoy the new VESA video modes.
 
 Logo and Font
 -------------
-The cg6 boot logo is contained in the PROM right behind the cg6 FCode.  Here is
+The CG6 boot logo is contained in the PROM right behind the CG6 FCode.  Here is
 the extracted logo as a (lossless) png file:
 
 image:cg6-logo.png["CG6 Logo"]
 
-Coming soon: changing the boot logo and patching the PROM to use _Comic Sans_
-as the console font.
+Coming soon: changing the boot logo and patching the PROM to use
+{url-comic-mono}[Comic Sans Mono] as the console font.
 
 link:{imagesdir}lena-teaser.jpg[image:lena-teaser.jpg["SPARCstation Lena",width=50%]]
 
