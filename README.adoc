@@ -4,7 +4,7 @@ Malte Dehling <mdehling@gmail.com>
 :imagesdir: https://raw.githubusercontent.com/1k5/sslx-vesa-mod/main/img/
 
 :url-framebuffer-faq: http://www.sunhelp.org/faq/FrameBuffer.html
-:url-SUNWddk: https://stuff.mit.edu/afs/athena/contrib/watchmaker/SUNWddk/
+:url-SUNWddk: https://archive.org/details/sun-ddk-v2.6/
 :url-fcode-2: https://docs.oracle.com/cd/E19695-01/802-1941/802-1941.pdf
 :url-maydell-ipx-cg6: http://www.chiark.greenend.org.uk/~pmaydell/misc/cgsixdata.txt
 :url-bitsavers-gx: http://www.bitsavers.org/components/lsiLogic/sparc/GX/
