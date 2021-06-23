@@ -209,7 +209,13 @@ write this to an AM27C020 or equivalent and enjoy the new VESA video modes.
 
 Logo and Font
 -------------
-Coming soon...
+The cg6 boot logo is contained in the PROM right behind the cg6 FCode.  Here is
+the extracted logo as a (lossless) png file:
+
+image:cg6-logo.png["CG6 Logo"]
+
+Coming soon: changing the boot logo and patching the PROM to use _Comic Sans_
+as the console font.
 
 link:{imagesdir}lena-teaser.jpg[image:lena-teaser.jpg["SPARCstation Lena",width=50%]]
 
