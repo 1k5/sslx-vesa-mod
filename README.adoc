@@ -210,8 +210,11 @@ write this to an AM27C020 or equivalent and enjoy the new VESA video modes.
 
 Logo and Font
 -------------
-The CG6 boot logo is contained in the PROM right behind the CG6 FCode.  Here is
-the extracted logo as a (lossless) png file:
+The CG6 boot logo is contained in the PROM right behind the CG6 FCode.  Using
+`dd` one may extract the logo in its raw form.  The `logo` directory contains
+a program to convert this raw form to the SUN Rasterfile image format.  The
+rasterfile format is understood by, e.g., ImageMagick.  Here is the extracted
+CG6 logo in PNG format:
 
 image:cg6-logo.png["CG6 Logo"]
 
