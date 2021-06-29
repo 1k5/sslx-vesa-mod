@@ -109,7 +109,7 @@ int copy_data() {
 }
 
 
-int convert() {
+int raw2sun() {
 	enum stat_t status = S_ERR;
 
 	if ( read_raw_header() != S_OK ) {
@@ -129,7 +129,16 @@ int convert() {
 int main(int argc, char **argv) {
 	enum stat_t status = S_OK;
 
-	if (argc != 3) {
+	union {
+		unsigned char byte[4];
+		int val;
+	} end_test;
+
+	end_test.val = RAS_MAGIC;
+
+	if (end_test.byte[0] != 0x59) {
+		printf("Really?!?  Get yourself a SPARCstation!\n");
+	} else if (argc != 3) {
 		printf("Usage: %s input-file output-file\n", argv[0]);
 		status = S_ERR;
 	} else if ( (in_fp = fopen(argv[1], "r")) == NULL ) {
@@ -139,7 +148,7 @@ int main(int argc, char **argv) {
 		perror("fopen()");
 		status = S_ERR;
 	} else {
-		status = convert();
+		status = raw2sun();
 	};
 
 	if (out_fp) fclose(out_fp);
