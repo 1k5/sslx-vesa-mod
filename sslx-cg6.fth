@@ -1,12 +1,13 @@
 \
-\ SPARCstation LX builtin cg6 Framebuffer PROM
+\ CG6 FCode extracted from SPARCstation LX v2.10 OBP PROM.
 \
-\ Taken from the SPARCstation LX OpenBoot
+\ Detokenized, formatted, and commented by
+\ Malte Dehling <mdehling@gmail.com>
 \
 FCode-version1
 offset16
 
-hex		\ all numbers are in hex
+hex
 
 
 " cgsix" 		name
@@ -225,30 +226,30 @@ defer fbprom
 : init-blit-reg ( -- )
 	fbc-busy-wait
 
-	ffffffff 10 fbc!	\ STATUS
+	ffff.ffff 10 fbc!	\ STATUS
 
 	0 4 tec!
 
-	h# 0 8 fbc!		\ CLIPCHECK
+	00 08 fbc!		\ CLIPCHECK
 
-	h# 0 c0 fbc!		\ RASTEROFFX
-	h# 0 c4 fbc!		\ RASTEROFFY
+	00 c0 fbc!		\ RASTEROFFX
+	00 c4 fbc!		\ RASTEROFFY
 
-	h# 0 d0 fbc!		\ AUTOINCX
-	h# 0 d4 fbc!		\ AUTOINCY
+	00 d0 fbc!		\ AUTOINCX
+	00 d4 fbc!		\ AUTOINCY
 
-	h# 0 e0 fbc!		\ CLIPMINX
-	h# 0 e4 fbc!		\ CLIPMINY
+	00 e0 fbc!		\ CLIPMINX
+	00 e4 fbc!		\ CLIPMINY
 
 	ff 100 fbc!		\ FCOLOR
-	h# 0 104 fbc!		\ BCOLOR
+	00 104 fbc!		\ BCOLOR
 
 	a980.6c60 108 fbc!	\ RASTEROP
 
 	ff 10c fbc!		\ PLANEMASK
 	ffff.ffff 110 fbc!	\ PIXELMASK
 
-	h# 0 11c fbc!		\ PATTALIGN
+	00 11c fbc!		\ PATTALIGN
 
 	\ PATTERN0..PATTERN7
 	ffffffff 120 fbc! ffffffff 124 fbc! ffffffff 128 fbc! ffffffff 12c fbc!
@@ -271,11 +272,18 @@ defer fbprom
 	\ presumably added later to deal with higher resolutions.
 	\
 	display-width case
-	d# 1024 of	ffffe3ff 0 fhc@ and          0 fhc!	endof
-	d# 1152 of	ffffe3ff 0 fhc@ and 800 or   0 fhc!	endof
-	d# 1280 of	ffffe3ff 0 fhc@ and 1000 or  0 fhc!	endof
-	d# 1600 of	ffffe3ff 0 fhc@ and 1800 or  0 fhc!	endof
-	d# 1920 of	ffffe3ff 0 fhc@ and 400 or   0 fhc!	endof
+	d# 1024 of  ffff.e3ff 0 fhc@ and         0 fhc!  endof
+	d# 1152 of  ffff.e3ff 0 fhc@ and 0800 or 0 fhc!  endof
+	d# 1280 of  ffff.e3ff 0 fhc@ and 1000 or 0 fhc!  endof
+	d# 1600 of  ffff.e3ff 0 fhc@ and 1800 or 0 fhc!  endof
+	d# 1920 of  ffff.e3ff 0 fhc@ and 0400 or 0 fhc!  endof
+	\ This one is from the TurboGX+ which uses the same RAMDAC.  It doesn't
+	\ make sense with only 2MB video memory though.
+	\
+	\ d# 2048 of  ffff.e3ff 0 fhc@ and 1400 or 0 fhc!  endof
+	\
+	\ Now the interesting question is, of course, whether 0c00 or 1c00 work
+	\ and, if so, what resolutions they correspond to.
 	endcase
 ;
 
@@ -601,19 +609,19 @@ variable tmp-blit
 	dac-map
 
 	0600.0000 0 dac! 4300.0000 8 dac!	\ Command:    0100.0011
-	0500.0000 0 dac! h# 0      8 dac!	\ Blink Mask: 0000.0000
+	0500.0000 0 dac! 0000.0000 8 dac!	\ Blink Mask: 0000.0000
 	0400.0000 0 dac! ff00.0000 8 dac!	\ Read Mask:  1111.1111
-	0700.0000 0 dac! h# 0      8 dac!	\ Test:       0000.0000
+	0700.0000 0 dac! 0000.0000 8 dac!	\ Test:       0000.0000
 	0900.0000 0 dac! 0600.0000 8 dac!	\ ?:          0000.0110
 
 	\ Initialize color palette.
-	ff00.0000  h# 0       4 color!		\ entry 00 is white
-	h# 0       ff00.0000  4 color!		\ entry ff is black
+	ff00.0000 0000.0000 4 color!		\ entry 00 is white
+	0000.0000 ff00.0000 4 color!		\ entry ff is black
 
 	\ Initialize overlay colors.
-	ff00.0000  0100.0000  c color!		\ overlay 1 is white
-	h# 0       0200.0000  c color!		\ overlay 2 is black
-	h# 0       0300.0000  c color!		\ overlay 3 is black
+	ff00.0000 0100.0000 c color!		\ overlay 1 is white
+	0000.0000 0200.0000 c color!		\ overlay 2 is black
+	0000.0000 0300.0000 c color!		\ overlay 3 is black
 
 	\ Typical blue-ish purple Sun logo color.
 	6400.0000 4100.0000 b400.0000 0100.0000 3color!
@@ -656,7 +664,7 @@ defer sense-code
 \ Default display mode by sense-id *without* extra VRAM.
 : legoSR-sense ( -- stradr strlen )
 	sense-id-value case
-	7 of	r1152x900x66	endof	\ no or unsupported monitor
+	7 of	r1152x900x66	endof
 	6 of	r1152x900x76	endof
 	5 of	r1024x768x60	endof
 	4 of	r1152x900x76	endof
@@ -664,7 +672,7 @@ defer sense-code
 	2 of	r1152x900x66	endof
 	1 of	r1152x900x66	endof
 	0 of	r1024x768x77	endof
-	drop	r1152x900x66	0	\ invalid sense-id
+	drop	r1152x900x66	0
 	endcase
 ;
 
@@ -672,7 +680,7 @@ defer sense-code
 \ Default display mode by sense-id *with* extra VRAM.
 : duploSR-sense ( -- stradr strlen )
 	sense-id-value case
-	7 of	r1152x900x66	endof	\ no or unsupported monitor
+	7 of	r1152x900x66	endof
 	6 of	r1152x900x76	endof
 	5 of	r1024x768x60	endof
 	4 of	r1152x900x76	endof
@@ -680,7 +688,7 @@ defer sense-code
 	2 of	r1280x1024x76	endof
 	1 of	r1600x1280x76	endof
 	0 of	r1024x768x77	endof
-	drop	r1152x900x66	0	\ invalid sense-id
+	drop	r1152x900x66	0
 	endcase
 ;
 
@@ -757,8 +765,6 @@ defer sense-code
 : ics108	0 1 0 a 5 0 0 1 8 4 2 0 3 ;
 : ics118	0 1 0 a 5 0 0 1 8 3 2 0 2 ;
 : ics135	0 1 0 a 6 0 0 1 8 5 4 0 3 ;
-\ : ics162	0 1 0 a 6 0 0 1 8 6 6 0 3 ;
-\ : ics162	0 0 0 a 5 0 0 1 8 6 6 0 7 ;
 : ics189	0 0 0 a 5 0 0 1 8 2 0 0 2 ;
 : ics216	0 0 0 a 5 0 0 1 8 4 2 0 3 ;
 
@@ -770,13 +776,19 @@ defer sense-code
 \ order in setup-oscillator !
 \
 : oscillators ( -- osc[0..n-1] n )
-	\ 50775d8 4d3f640 46cf710 3d27848
-	\ cdfe600 b43e940 80befc0 70a71c8
-	\ 66ff300 5a1f4a0 337f980 2d0fa50
-	d#  84.375.000	d#  81.000.000	d#  74.250.000	d#  64.125.000
-	d# 216.000.000	d# 189.000.000	d# 135.000.000	d# 118.125.000
-	d# 108.000.000	d#  94.500.000	d#  54.000.000	d#  47.250.000
-	c	\ number of oscillator values
+	d#  84.375.000
+	d#  81.000.000
+	d#  74.250.000
+	d#  64.125.000
+	d# 216.000.000
+	d# 189.000.000
+	d# 135.000.000
+	d# 118.125.000
+	d# 108.000.000
+	d#  94.500.000
+	d#  54.000.000
+	d#  47.250.000
+	c			\ number of oscillator values
 ;
 
 
@@ -805,22 +817,6 @@ defer sense-code
 	loop
 
 	0 f ics-write
-
-	\
-	\ According to the ICS1562A datasheet I have, it needs 32 register
-	\ writes for programming to become effective.  It is suggested to do
-	\ dummy writes to the c or d register.  The TurboGX+ PROM contains the
-	\ following code:
-	\
-	\ 20 0 do
-	\	0 d ics-write
-	\ loop
-	\
-	\ In fact, 19 (h# 13) dummy writes should be enough.
-	\
-	\ The LX contains an ICS1562M 9348-001 for which I have no datasheet
-	\ so I'm not sure whether the same dummy writes should be done here.
-	\
 
 	94 thc@  40 or  dup 94 thc!  to strap-value
 
@@ -1080,12 +1076,14 @@ headers
 
 : fbc-res ( -- )
 	display-width case
-	d# 1024 of	ffffe3ff 0 fhc@ and         0 fhc!	endof
-	d# 1152 of	ffffe3ff 0 fhc@ and 800 or  0 fhc!	endof
-	d# 1280 of	ffffe3ff 0 fhc@ and 1000 or 0 fhc!	endof
-	d# 1600 of	ffffe3ff 0 fhc@ and 1800 or 0 fhc!	endof
-	d# 1920 of	ffffe3ff 0 fhc@ and 400 or  0 fhc!	endof
-	0	to acceleration		\ unknown resolution, no acceleration
+	d# 1024 of  ffff.e3ff 0 fhc@ and         0 fhc!  endof
+	d# 1152 of  ffff.e3ff 0 fhc@ and 0800 or 0 fhc!  endof
+	d# 1280 of  ffff.e3ff 0 fhc@ and 1000 or 0 fhc!  endof
+	d# 1600 of  ffff.e3ff 0 fhc@ and 1800 or 0 fhc!  endof
+	d# 1920 of  ffff.e3ff 0 fhc@ and 0400 or 0 fhc!  endof
+	\ From the TurboGX+, same RAMDAC.  Not enough video memory on the LX.
+	\ d# 2048 of  ffff.e3ff 0 fhc@ and 1400 or 0 fhc!  endof
+	            0 to acceleration	\ unknown resolution, no acceleration
 	endcase
 
 	\ Handle the 0OFFSET flag.
@@ -1155,7 +1153,7 @@ headers
 	?fhc-thc-map
 
 	8000 0 fhc!
-	1bb 0 fhc!
+	01bb 0 fhc!
 
 	chip-rev case
 	5 of
@@ -1183,7 +1181,7 @@ headers
 		disable-disables
 	endcase
 
-	ffe0ffe0 8fc thc!
+	ffe0.ffe0 8fc thc!
 
 	lego-sync-reset
 	lego-sync-on
@@ -1194,14 +1192,14 @@ headers
 
 \ Read 4 bytes (MSB first) and form an integer.
 : logo@ ( addr -- int )
-	0 swap			( 0 addr )
+	0 swap			\ ( 0 addr )
 	4 0 do
-		dup c@		( x addr b )
-		rot		( addr b x )
-		8 lshift +	( addr b+(x<<8) )
-		swap 1 +	( b+(x<<8) addr+1 )
+		dup c@		\ ( x addr b )
+		rot		\ ( addr b x )
+		8 lshift +	\ ( addr b+(x<<8) )
+		swap 1 +	\ ( b+(x<<8) addr+1 )
 	loop
-	drop			( b0<<24+b1<<16+b2<<8+b3 )
+	drop			\ ( b0<<24+b1<<16+b2<<8+b3 )
 ;
 
 
@@ -1277,33 +1275,33 @@ headers
 	8 fbc@
 	35 100 fbc!
 	ca 104 fbc!
-	12345678 110 fbc!
-	96969696 84 fbc!
-	69696969 80 fbc!
-	3c3c3c3c 90 fbc!
-	a980cccc 108 fbc!
-	ff 10c fbc!
+	1234.5678 110 fbc!
+	9696.9696 84 fbc!
+	6969.6969 80 fbc!
+	3c3c.3c3c 90 fbc!
+	a980.cccc 108 fbc!
+	0000.00ff 10c fbc!
 	0 e0 fbc!
-	h# 0 e4 fbc!
+	0000.0000 e4 fbc!
 	display-width 1 - f0 fbc!
 	display-height 1 - f4 fbc!
-	14aac0 4 fbc!
-	h# 0 8 fbc!
-	h# 0 4 tec!
+	0014.aac0 4 fbc!
+	0000.0000 8 fbc!
+	0000.0000 4 tec!
 
 	"  FBC register test" diagnostic-type
 
 	100 fbc@
 	35		" FBC_FCOLOR"		?lego-error 104 fbc@
 	ca		" FBC_BCOLOR"		?lego-error 110 fbc@
-	12345678	" FBC_PIXELMASK"	?lego-error 84 fbc@
-	96969696	" FBC_Y0"		?lego-error 80 fbc@
-	69696969	" FBC_X0"		?lego-error 90 fbc@
-	3c3c3c3c	" FBC_RASTEROP"		?lego-error ff 110 fbc!
+	1234.5678	" FBC_PIXELMASK"	?lego-error 84 fbc@
+	9696.9696	" FBC_Y0"		?lego-error 80 fbc@
+	6969.6969	" FBC_X0"		?lego-error 90 fbc@
+	3c3c.3c3c	" FBC_RASTEROP"		?lego-error ff 110 fbc!
 	0 84 fbc!
 	0 80 fbc!
 	1f 90 fbc!
-	55555555 1c fbc!
+	5555.5555 1c fbc!
 	8 fbc!
 
 	selftest-map if
@@ -1413,7 +1411,7 @@ external
 
 		dblbuf? encode-int " dblbuf" property
 	then
-; \ set-resolution
+;
 
 
 : set-resolution-ext
@@ -1428,6 +1426,7 @@ external
 		sense-code
 		(set-fbconfiguration
 	then
+
 	display-width display-height * 100000 <= if
 		/vmsize 2 = if
 			1 to dblbuf?
@@ -1437,12 +1436,17 @@ external
 	else
 		0 to dblbuf?
 	then
+
 	0 to my-reset
+
 	display-width data-space l!
 	display-height data-space 4 + l!
+
 	8 data-space 8 + l!
 	display-width data-space c + l!
+
 	dblbuf?
+
 	data-space 10 + l!
 	acceleration
 	data-space 14 + l!
@@ -1510,11 +1514,11 @@ headers
 
 
 : get-size
-	1234567 fb-addr l! 87654321 100000 fb-addr + l! fb-addr
-	l@ 1234567 <> if
+	0123.4567 fb-addr l! 8765.4321 0010.0000 fb-addr + l! fb-addr
+	l@ 0123.4567 <> if
 		1
 	else
-		fb-addr 100000 + l@ 87654321 <> if
+		fb-addr 0010.0000 + l@ 8765.4321 <> if
 			1
 		else
 			2
@@ -1587,7 +1591,7 @@ headers
 	14 rshift f and dup encode-int " chiprev" my-attribute to chip-rev
 
 	\ These are 32 dummy writes to ICS register 0 so the new programming
-	\ becomes effective.  See my comments in setup-oscillator !
+	\ becomes effective.
 	20 0 do
 		\ together this is:  0 0 icswrite
 		0 0 alt!

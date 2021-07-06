@@ -1,12 +1,13 @@
 \
-\ SPARCstation LX builtin cg6 Framebuffer PROM
+\ CG6 FCode extracted from SPARCstation LX v2.10 OBP PROM.
 \
-\ Taken from the SPARCstation LX OpenBoot v2.10
+\ Detokenized, formatted, and commented by
+\ Malte Dehling <mdehling@gmail.com>
 \
 FCode-version1
 offset16
 
-hex		\ all numbers are in hex
+hex
 
 
 " cgsix" 		name
@@ -277,8 +278,12 @@ defer fbprom
 	d# 1600 of  ffff.e3ff 0 fhc@ and 1800 or 0 fhc!  endof
 	d# 1920 of  ffff.e3ff 0 fhc@ and 0400 or 0 fhc!  endof
 	\ This one is from the TurboGX+ which uses the same RAMDAC.  It doesn't
-	\ make sens with only 2MB video memory though.
+	\ make sense with only 2MB video memory though.
+	\
 	\ d# 2048 of  ffff.e3ff 0 fhc@ and 1400 or 0 fhc!  endof
+	\
+	\ Now the interesting question is, of course, whether 0c00 or 1c00 work
+	\ and, if so, what resolutions they correspond to.
 	endcase
 ;
 
@@ -757,8 +762,8 @@ defer sense-code
 \                 S     V         M A   R
 \ Reg:          c b a 9 8 7 6 5 4 3 2 1 0
 \               v v v v v v v v v v v v v
-\ : ics47		0 1 0 a 4 0 0 1 8 2 0 0 5 ;
-\ : ics54		0 1 0 a 4 0 0 1 8 2 2 0 4 ;
+\ ics47		0 1 0 a 4 0 0 1 8 2 0 0 5 ;
+\ ics54		0 1 0 a 4 0 0 1 8 2 2 0 4 ;
 : ics64		0 1 0 a 4 0 0 1 8 2 1 0 3 ;
 : ics74		0 1 0 a 5 0 0 1 8 4 3 0 5 ;
 : ics81		0 1 0 a 5 0 0 1 8 5 0 0 6 ;
@@ -767,12 +772,12 @@ defer sense-code
 : ics108	0 1 0 a 5 0 0 1 8 4 2 0 3 ;
 : ics118	0 1 0 a 5 0 0 1 8 3 2 0 2 ;
 : ics135	0 1 0 a 6 0 0 1 8 5 4 0 3 ;
-\ : ics162	0 1 0 a 6 0 0 1 8 6 6 0 3 ;
+\ ics162	0 1 0 a 6 0 0 1 8 6 6 0 3 ;
 : ics148	0 0 0 a 5 0 0 1 8 4 3 0 5 ;
-\ : ics154	0 0 0 a 5 0 0 1 9 8 4 1 a ;
+\ ics154	0 0 0 a 5 0 0 1 9 8 4 1 a ;
 : ics162	0 0 0 a 5 0 0 1 8 6 6 0 7 ;
 : ics189	0 0 0 a 5 0 0 1 8 2 0 0 2 ;
-\ : ics216	0 0 0 a 5 0 0 1 8 4 2 0 3 ;
+\ ics216	0 0 0 a 5 0 0 1 8 4 2 0 3 ;
 
 
 \
@@ -1202,14 +1207,14 @@ headers
 
 \ Read 4 bytes (MSB first) and form an integer.
 : logo@ ( addr -- int )
-	0 swap
+	0 swap			\ ( 0 addr )
 	4 0 do
-		dup c@
-		rot
-		8 lshift +
-		swap 1 +
+		dup c@		\ ( x addr b )
+		rot		\ ( addr b x )
+		8 lshift +	\ ( addr b+(x<<8) )
+		swap 1 +	\ ( b+(x<<8) addr+1 )
 	loop
-	drop
+	drop			\ ( b0<<24+b1<<16+b2<<8+b3 )
 ;
 
 
@@ -1248,7 +1253,8 @@ headers
 		logo-data 1 + c@	( line# logo-data[0] logo-data[1] )
 		rot			( logo-data[0] logo-data[1] line# )
 
-		logo-data 302 + swap char-height * window-top + display-width * window-left + fb-addr +
+		logo-data 302 +
+		swap char-height * window-top + display-width * window-left + fb-addr +
 
 		move-image-to-fb
 	then
@@ -1294,7 +1300,7 @@ headers
 	0 e4 fbc!
 	display-width 1 - f0 fbc!
 	display-height 1 - f4 fbc!
-	14aac0 4 fbc!
+	0014.aac0 4 fbc!
 	0 8 fbc!
 	0 4 tec!
 
@@ -1523,11 +1529,11 @@ headers
 
 
 : get-size
-	1234567 fb-addr l! 87654321 100000 fb-addr + l! fb-addr
-	l@ 1234567 <> if
+	0123.4567 fb-addr l! 8765.4321 0010.0000 fb-addr + l! fb-addr
+	l@ 0123.4567 <> if
 		1
 	else
-		fb-addr 100000 + l@ 8765.4321 <> if
+		fb-addr 0010.0000 + l@ 8765.4321 <> if
 			1
 		else
 			2
